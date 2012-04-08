@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html class="ui-mobile js">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><base href=".">
+
+        <title>iOS-HTML5-Tethering</title>
+
+        <style type="text/css">
+                form input + label.error, form select + label.error, form textarea + label.error {
+                        border-radius: 0 0 2px 2px;
+                        margin: 3px 0;
+                }
+                form label.error, form label.notice {
+                        background: none repeat scroll 0 0 #F2BDB9;
+                        border-radius: 2px 2px 2px 2px;
+                        color: #A9422E;
+                        display: block;
+                        font-size: 13px;
+                        padding: 6px 8px;
+                        position: relative;
+                        z-index: 100;
+                }
+                .error {
+                        color: #EE5555;
+                }
+                p.event,
+                p.error,
+                p.warning {
+                        background: #EAEAEA;
+                        border: 1px solid #E2E2E2;
+                        border-radius: 5px;
+                        box-shadow: 0 1px 1px 0 rgba(255, 255, 255, 1), 1px 1px 2px 0 rgba(0,0,0,0.08) inset;
+                        font-size: 13px;
+                        font-weight: bold;
+                        margin: 2px 0;
+                        padding: 7px 10px;
+                        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+                }
+
+                p.event { 
+                        background: #99e393; /* Old browsers */
+                        background: -moz-linear-gradient(top,  #99e393 0%, #90e18c 22%, #76db75 66%, #67d767 100%); /* FF3.6+ */
+                        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#99e393), color-stop(22%,#90e18c), color-stop(66%,#76db75), color-stop(100%,#67d767)); /* Chrome,Safari4+ */
+                        background: -webkit-linear-gradient(top,  #99e393 0%,#90e18c 22%,#76db75 66%,#67d767 100%); /* Chrome10+,Safari5.1+ */
+                        background: -o-linear-gradient(top,  #99e393 0%,#90e18c 22%,#76db75 66%,#67d767 100%); /* Opera 11.10+ */
+                        background: -ms-linear-gradient(top,  #99e393 0%,#90e18c 22%,#76db75 66%,#67d767 100%); /* IE10+ */
+                        background: linear-gradient(top,  #99e393 0%,#90e18c 22%,#76db75 66%,#67d767 100%); /* W3C */
+                        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#99e393', endColorstr='#67d767',GradientType=0 ); /* IE6-9 */
+                        
+                        border-color: #88C185;
+                        color: #005D07;
+                }
+                p.error {
+                        background: #f25448; /* Old browsers */
+                        background: -moz-linear-gradient(top,  #f25448 0%, #e13734 100%); /* FF3.6+ */
+                        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f25448), color-stop(100%,#e13734)); /* Chrome,Safari4+ */
+                        background: -webkit-linear-gradient(top,  #f25448 0%,#e13734 100%); /* Chrome10+,Safari5.1+ */
+                        background: -o-linear-gradient(top,  #f25448 0%,#e13734 100%); /* Opera 11.10+ */
+                        background: -ms-linear-gradient(top,  #f25448 0%,#e13734 100%); /* IE10+ */
+                        background: linear-gradient(top,  #f25448 0%,#e13734 100%); /* W3C */
+                        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f25448', endColorstr='#e13734',GradientType=0 ); /* IE6-9 */
+                        
+                        border-color: #BB493B;
+                        color: #751711;
+                        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.30);
+
+                }
+                p.warning {
+                        background: #ffe400; /* Old browsers */
+                        background: -moz-linear-gradient(top,  #ffe400 0%, #ffcd01 100%); /* FF3.6+ */
+                        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffe400), color-stop(100%,#ffcd01)); /* Chrome,Safari4+ */
+                        background: -webkit-linear-gradient(top,  #ffe400 0%,#ffcd01 100%); /* Chrome10+,Safari5.1+ */
+                        background: -o-linear-gradient(top,  #ffe400 0%,#ffcd01 100%); /* Opera 11.10+ */
+                        background: -ms-linear-gradient(top,  #ffe400 0%,#ffcd01 100%); /* IE10+ */
+                        background: linear-gradient(top,  #ffe400 0%,#ffcd01 100%); /* W3C */
+                        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffe400', endColorstr='#ffcd01',GradientType=0 ); /* IE6-9 */
+                        
+                        border-color: #D5BF00;
+                        color: #735A00;
+                }
+                
+                div.connecting strong {
+                        background: url(/assets/images/ajax-loader.gif) no-repeat 100% 50%;
+                        padding-right: 16px;
+                }
+                
+                .nocookies { display: none; text-align: center; padding: 5px; }
+                
+                .text-justify { text-align: justify; }
+                .text-center { text-align: center; }
+        </style>
+
+        <link rel="stylesheet" href="jquery.mobile-1.0.1.min.css">
+        <script type="text/javascript" async="" src="ga.js"></script><script src="jquery-1.7.1.min.js"></script>
+        <script src="jquery.mobile-1.0.1.min.js"></script>
+        <script src="bookmark_bubble.js"></script>
+
+                <script type="text/javascript">
+                //Document is loaded let's start...
+                jQuery(document).ready(function($) {
+                        
+                        if (window.abort || !navigator.cookieEnabled) return;
+                        
+                        var socket = {
+                                /**
+                                 * Socket Status Codes
+                                 */
+                                CONNECTING: 0,      // The connection has not yet been established. 
+                                OPEN:       1,      // The WebSocket connection is established and communication is possible.
+                                CLOSING:    2,      // The connection is going through the closing handshake.
+                                CLOSED:     3,      // The connection has been closed or could not be opened.
+
+                                readyState: ['Connecting', 'Open', 'Closing', 'Closed'],
+
+                                startRemoteConnectTimer: function() {
+                                        var start = new Date().getTime();
+                                        socket.remoteConnectTimer = '0.0';
+
+                                        window.remoteInterval = window.setInterval(function() {  
+                                                var time = new Date().getTime() - start;  
+                                                socket.remoteConnectTimer = Math.floor(time / 100) / 10;  
+                                                if (Math.round(socket.remoteConnectTimer) == socket.remoteConnectTimer) { socket.remoteConnectTimer += '.0'; }
+
+                                                if (socket.localConnectTimer >= 30) {
+                                                        socket.remote.close();
+                                                }
+                                        }, 100);
+                                },
+
+                                stopRemoteConnectTimer: function() {
+                                        window.clearInterval(window.remoteInterval);
+                                },
+
+                                startLocalConnectTimer: function() {
+                                        var start = new Date().getTime();
+                                        socket.localConnectTimer = '0.0';
+
+                                        window.localInterval = window.setInterval(function() {  
+                                                var time = new Date().getTime() - start;  
+                                                socket.localConnectTimer = Math.floor(time / 100) / 10;
+                                                if (Math.round(socket.localConnectTimer) == socket.localConnectTimer) { socket.localConnectTimer += '.0'; }
+
+                                                if (socket.localConnectTimer >= 30) {
+                                                        for (var id in localsockets) {
+                                                                if (localsockets[id].readyState < 1) {
+                                                                        localsockets[id].close();
+                                                                }
+                                                        }
+                                                }
+                                        }, 100);
+                                },
+
+                                stopLocalConnectTimer: function() {
+                                        window.clearInterval(window.localInterval);
+                                }
+                        },
+
+                        localConnected = false,
+                        localAttempt = 0,
+                        $localstatus = $('#local-status'),
+                        localsockets = {},
+
+                        remoteConnected = false,
+                        remoteAttempt = 0,
+                        $remotestatus = $('#remote-status'),
+
+                        remoteAlert = false,
+                        localAlert = false,
+                        
+                        host = {};
+
+                        if (!('WebSocket' in window)) {
+                                var msg = 'It looks like your browser does not support Web Sockets. You must update your iOS device to the latest OS, for this to work.';
+                                $localstatus.html('<p class="error">' + msg + '</p>');
+                                alert(msg);
+                        } else {
+                                if (!navigator.onLine) alert('Your browser appears to be offline. Please ensure that your iOS device has an internet connection and then refresh this page.');
+                                else {
+                                        window.setInterval(connect, 3000);
+                                }
+                        }
+
+                        function connect() {
+
+                                var host = {};
+
+                                host.remote = "ws://p5.tether.com/websocket/";
+                                host.local = "ws://169.254.134.89:6354/websocket";
+
+                                try {
+                                        // remote websocket
+                                        if (remoteConnected == false) {
+
+                                                if (!socket.remoteConnectTimer) {
+                                                        socket.startRemoteConnectTimer();
+                                                }
+
+                                                socket.remote = new WebSocket(host.remote);
+                                                socket.remote.binaryType = "arraybuffer";
+
+                                                message('remote', '<p class="warning">Attempting to establish a connection with the Tether proxy (Attempt #' + (++remoteAttempt) + ') ...');
+                                                $('#remote-label').addClass('connecting');
+                                                
+                                                socket.remote.onopen = function() {
+                                                        $('#remote-label').removeClass('connecting');
+                                                        
+                                                        socket.stopRemoteConnectTimer();
+                                                        socket.remoteConnectTimer = 0;
+                                                        
+                                                        remoteAttempt = 0;
+                                                        remoteConnected = true;
+                                                        
+                                                        message('remote', '<p class="event">Connected to the Tether proxy.');
+                                                }
+
+                                                socket.remote.onclose = function() {
+                                                        $('#remote-label').removeClass('connecting');
+                                                        
+                                                        if (remoteConnected) {}
+                                                        else {
+                                                                if (socket.remoteConnectTimer >= 30) {
+                                                                        if (!remoteAlert) {
+                                                                                remoteAlert = true;
+                                                                                alert('Unable to connect to the Tether proxy. Please ensure that your iOS device has an internet connection (non-wifi). If the problem persists, try refreshing the page.');
+                                                                                socket.stopLocalConnectTimer();
+                                                                                socket.localConnectTimer = 0;
+                                                                                remoteAlert = false;
+                                                                        }
+                                                                }
+                                                        }
+
+                                                        remoteConnected = false;
+                                                        connectRemote();
+                                                }
+
+                                                socket.remote.onmessage = function(msg) {
+                                                        if(localConnected == true) socket.local.send( msg.data );
+                                                }
+
+                                                socket.remote.onerror = function(e) {
+                                                        alert('Unable to connect to Tether proxy. Please ensure that your iOS device has an internet connection.');
+                                                        console.log(e);
+                                                }
+                                        }
+                                        
+                                        // local websocket
+                                        if (localConnected == false) {
+
+                                                if (!socket.localConnectTimer) {
+                                                        socket.startLocalConnectTimer();
+                                                }
+
+                                                var localsocket = new WebSocket(host.local);
+                                                localsocket.binaryType = "arraybuffer";
+                                                
+                                                localsocket.id = new Date().getTime();
+                                                localsockets[localsocket.id] = localsocket;
+
+                                                message('local', '<p class="warning">Attempting to establish a connection to your computer (Attempt #' + (++localAttempt) + ') ...');
+                                                $('#local-label').addClass('connecting');
+
+                                                localsocket.onopen = function() {
+                                                        
+                                                        socket.local = this;
+                                                        
+                                                        console.log('opened local websocket ' + this.id);
+                                                        
+                                                        $('#local-label').removeClass('connecting');
+                                                        
+                                                        socket.stopLocalConnectTimer();
+                                                        socket.localConnectTimer = 0;
+                                                        
+                                                        for (var id in localsockets) {
+                                                                if (id != this.id) {
+                                                                        localsockets[id].close();
+                                                                }
+                                                        }
+
+                                                        localAttempt = 0;
+                                                        message('local', '<p class="event">Connected to your computer.');
+                                                        localConnected = true;
+                                                }
+
+                                                localsocket.onclose = function(e) {
+                                                        console.log('closed local websocket ' + this.id);
+                                                        console.log(e);
+                                                        $('#local-label').removeClass('connecting');
+                                                        
+                                                        delete localsockets[this.id];
+
+                                                        if (localConnected) {
+                                                                delete socket.local;
+                                                        }
+                                                        else {
+                                                                if (socket.localConnectTimer > 10) {
+                                                                        if (!localAlert) {
+                                                                                localAlert = true;
+                                                                                alert('Unable to connect to local machine. Please ensure that Tether is running on your computer and that your iOS device is connected to your tether ad-hoc network.');
+                                                                                socket.stopLocalConnectTimer();
+                                                                                socket.localConnectTimer = 0;
+                                                                                localAlert = false;
+                                                                        }
+                                                                }
+                                                        }
+
+                                                        localConnected = false;
+                                                        setTimeout(connect, 1000);
+                                                };
+
+                                                localsocket.onmessage = function(msg) {
+                                                        if(remoteConnected == true) socket.remote.send( msg.data );
+                                                };
+
+                                                localsocket.onerror = function(e) {
+
+                                                };
+                                        }
+                                }
+                                catch (exception) {
+                                        message('remote', '<p class="error">Error ' + exception);
+                                        message('local', '<p class="error">Error ' + exception);
+                                }
+                        }
+
+                        function message(server, msg) {
+                                if(server == "remote") $remotestatus.html(msg + '</p>');
+                                if(server == "local") $localstatus.html(msg + '</p>');
+                        }
+                        connect();
+                });
+        </script> 
+</head>
+
+<body>
+	<div data-role="page" id="start">
+		<div data-role="header" data-position="inline">
+			<h1>iOS-HTML5-Tethering</h1>
+		</div>
+		<div data-role="content">
+			<noscript><p class="warning">
+				 Your browser does not have Javascript enabled. Javascript is required for tethering to work.
+			</p></noscript>
+			<div class="" id="remote-label"><strong>Server Status:</strong></div>
+			<div class="" id="remote-status"><p class="event">Loading...</p></div>
+			<div class="" id="local-label"><strong>Computer Status:</strong></div>
+			<div class="" id="local-status"><p class="event">Loading...</p></div>                                                
+		</div>
+	</div>
+</body>
+
+</html>
