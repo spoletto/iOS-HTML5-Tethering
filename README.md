@@ -7,6 +7,8 @@ iOS-HTML5-Tethering is a simple attempt to provide connectivity to a laptop in n
 2. A websocket server running on a remote server, accessible by public IP. The remote server serves as a NAT, by reading all received IP packets and sending them out to the open internet as though the machine itself initiated the requests.
 3. An HTML5 web app, which enables communication between the client and server machines by piping data between two websocket connections.
 
+The websocket servers on both the client and remote end have been implemented using Node.js, though the implementation could easily be re-written using a number of other libraries/languages.
+
 This project was created for the sole purpose of learning and experimenting with network technologies. This code should not be used in any production environments.
 
 Client Setup - Mac OS X
@@ -45,5 +47,10 @@ $ sudo route add default 10.0.0.1
 ```
 
 Now as network requests are issued, data will be written into `/dev/tun0`. The Node.js program will read all such data and broadcast it to connected clients. Similarly, as websocket messages are received, the Node.js program will write data into `/dev/tun0`, effectively injecting websocket data into the OS as received IP traffic.
+
+Server Setup
+------------
+
+The server implementation was tested with an Amazon EC2 Micro Instance running Ubuntu Server Cloud Guest 11.10 (Oneiric Ocelot). A bootstrap script, `server/bootstrap_server.sh` is provided to install the necessary tools to get off the ground.
 
 
