@@ -38,11 +38,17 @@ function network_traffic_to_websocket() {
 }
 
 // Bring up the tun0 device, assigning it the IP address 10.0.0.1.
-var child = exec("sudo ifconfig tun0 10.0.0.1 10.0.0.1 netmask 255.255.255.0 up", function (error, stdout, stderr) {
- 	if (error !== null) {
-    	console.log('exec error: ' + error);
-  	}
-	network_traffic_to_websocket();
+exec("sudo ifconfig tun0 10.0.0.1 10.0.0.1 netmask 255.255.255.0 up", function (error, stdout, stderr) {
+ 	if (error !== null) { console.log('exec error: ' + error); }
+	
+	// Modify the IP routing table to delete the current default route, and route all network traffic through the tunnel.
+	exec("sudo route delete default", function (error, stdout, stderr) {
+		if (error !== null) { console.log('exec error: ' + error); }
+		exec("sudo route add default 10.0.0.1", function (error, stdout, stderr) {
+			if (error !== null) { console.log('exec error: ' + error); }
+			network_traffic_to_websocket();
+		});
+	});
 });
 
 server.listen(6354, "169.254.134.89");
