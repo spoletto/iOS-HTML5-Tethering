@@ -17,9 +17,7 @@ In order for all network traffic to be funneled through the websocket connection
 1. Click on the AirPort icon in your menu bar. From the AirPort menu, select "Create Network..."
 2. Provide a name for the network, and optionally provide a password.
 
-Now, on your smartphone device, join the ad-hoc network.
-
-When the HTML5 web app is loaded on the device, it will attempt to connect to a known, fixed IP address: `169.254.134.89`. Before we can run the websocket server which will bind to that address, we must assign that IP address to the Wifi device of the client machine. To do so, run the following command, substituting `en1` with your Wifi device name.
+When the HTML5 web app is loaded on your smartphone device, it will attempt to connect to a known, fixed IP address: `169.254.134.89`. Before we can run the websocket server which will bind to that address, we must assign that IP address to the Wifi device of the client machine. To do so, run the following command, substituting `en1` with your Wifi device name.
 
 ``` bash
 $ sudo /sbin/ifconfig en1 inet 169.254.134.89 netmask 255.255.0.0 alias
