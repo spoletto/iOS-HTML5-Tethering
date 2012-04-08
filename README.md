@@ -12,24 +12,24 @@ This project was created for the sole purpose of learning and experimenting with
 Client Setup - Mac OS X
 ------------------------
 
-In order for all network traffic to be funneled through the websocket connection, a tun interface must be created on the client machine.
-
-1. Download the [TunTap package for Mac OS X](http://tuntaposx.sourceforge.net/download.xhtml).
-
-Once the TunTap package has been installed, create an ad-hoc network on the client machine.
+In order for all network traffic to be funneled through the websocket connection, a tun interface must be created on the client machine. If you haven't already, download and install the [TunTap package for Mac OS X](http://tuntaposx.sourceforge.net/download.xhtml). Once the TunTap package has been installed, create an ad-hoc network on the client machine:
 
 1. Click on the AirPort icon in your menu bar. From the AirPort menu, select "Create Network..."
 2. Provide a name for the network, and optionally provide a password.
 
 Now, on your smartphone device, join the ad-hoc network.
 
-When the HTML5 web app is loaded on the device, it will attempt to connect to a known, fixed IP address: 169.254.134.89. Before we can run the websocket server which will bind to that address, we must assign that IP address to the Wifi device of the client machine:
+When the HTML5 web app is loaded on the device, it will attempt to connect to a known, fixed IP address: 169.254.134.89. Before we can run the websocket server which will bind to that address, we must assign that IP address to the Wifi device of the client machine. To do so, run the following command, substituting `en1` with your Wifi device name.
 
-1. Open terminal and run 'sudo /sbin/ifconfig en1 inet 169.254.134.89 netmask 255.255.0.0 alias'. Note: 'en1' may need to be substituted for a different device name.
+``` bash
+$ sudo /sbin/ifconfig en1 inet 169.254.134.89 netmask 255.255.0.0 alias
+```
 
 Now, we can launch the websocket server.
 
-1. sudo node client/ws-server.js 
+``` bash
+$ sudo node client/ws-server.js 
+```
 
 
 
