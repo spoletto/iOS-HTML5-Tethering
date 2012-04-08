@@ -4,6 +4,7 @@
  */
 
 var ws = require("websocket-server");
+var fs = require("fs");
 
 var server = ws.createServer();
 var fd = fs.openSync('/dev/tun0', 'r+');
