@@ -22,4 +22,4 @@ sudo make install
 
 # Install the node modules we'll need.
 cd ~
-npm install websocket-server
+npm install websocket-server express
