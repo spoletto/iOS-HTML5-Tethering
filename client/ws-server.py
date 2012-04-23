@@ -6,8 +6,9 @@ from tornado.web import Application
 from tornado.websocket import WebSocketHandler
 import threading
 import subprocess
+import os
 
-tun = open('/dev/tun0', 'r+')
+tun = os.open('/dev/tun0', os.O_RDWR)
 
 subprocess.check_call('sudo ifconfig tun0 10.0.0.1 10.0.0.1 netmask 255.255.255.0 up', shell=True)
 subprocess.check_call('sudo route delete default', shell=True)
@@ -21,18 +22,25 @@ class TunReader(threading.Thread):
         threading.Thread.__init__(self) 
 
     def run(self):
+        global connection
+        global tun
         print "Tunnel listening thread started."
         while (True):
-            dataFromTun = tun.read()
-            #dataFromTun = dataFromTun.decode('bin')       
+            print "In while loop"
+            dataFromTun = os.read(tun, 1500)
+            dataFromTun = dataFromTun.encode('base64')       
             print "message received from tunnel: " + dataFromTun
+            print "connection is in other thread " + str(connection)
             if connection:
+                print "sending message to websocket"
                 connection.write_message(dataFromTun)
 
 class Handler(WebSocketHandler):
         def open(self):
+            global connection
             print "New connection opened."
             connection = self
+            print "connection is " + str(connection)
 
         def on_message(self, message):
             print "raw message: " + message
@@ -41,6 +49,7 @@ class Handler(WebSocketHandler):
             tun.write(m)
 
         def on_close(self):
+            global connection
             print "Connection closed."
             connection = None
 
@@ -49,7 +58,8 @@ class Handler(WebSocketHandler):
 
 
 wsServer = HTTPServer(Application([("/websocket", Handler)]))
-tunThread = TunReader(wsServer)
+tunThread = TunReader(None)
+tunThread.daemon = True
 tunThread.start()
 print "Server started."
 wsServer.listen(6354, "169.254.134.89")
