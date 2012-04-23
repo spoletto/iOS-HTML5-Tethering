@@ -43,10 +43,11 @@ class Handler(WebSocketHandler):
             print "connection is " + str(connection)
 
         def on_message(self, message):
+            global tun
             print "raw message: " + message
             m = message.decode('base64')
             print "message received from websocket: " + m
-            tun.write(m)
+            os.write(tun, m)
 
         def on_close(self):
             global connection
