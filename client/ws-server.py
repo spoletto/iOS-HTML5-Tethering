@@ -13,6 +13,8 @@ subprocess.check_call('sudo ifconfig tun0 10.0.0.1 10.0.0.1 netmask 255.255.255.
 subprocess.check_call('sudo route delete default', shell=True)
 subprocess.check_call('sudo route add default 10.0.0.1', shell=True)
 
+connection = None
+
 class TunReader(threading.Thread):
     def __init__(self, server):
         self.server = server
@@ -24,11 +26,13 @@ class TunReader(threading.Thread):
             dataFromTun = tun.read()
             #dataFromTun = dataFromTun.decode('bin')       
             print "message received from tunnel: " + dataFromTun
-            self.server.write_message(dataFromTun)
+            if connection:
+                connection.write_message(dataFromTun)
 
 class Handler(WebSocketHandler):
         def open(self):
             print "New connection opened."
+            connection = self
 
         def on_message(self, message):
             print "raw message: " + message
@@ -37,7 +41,8 @@ class Handler(WebSocketHandler):
             tun.write(m)
 
         def on_close(self):
-                print "Connection closed."
+            print "Connection closed."
+            connection = None
 
         def allow_draft76(self):
             return True
