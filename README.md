@@ -7,7 +7,7 @@ iOS-HTML5-Tethering is a simple attempt to provide connectivity to a laptop in n
 2. A websocket server running on a remote server, accessible by public IP. The remote server serves as a NAT, by reading all received IP packets and sending them out to the open internet as though the machine itself initiated the requests.
 3. An HTML5 web app, which enables communication between the client and server machines by piping data between two websocket connections.
 
-The websocket servers on both the client and remote end have been implemented using Node.js, though the implementation could easily be re-written using a number of other libraries/languages.
+The websocket servers on both the client and remote end have been implemented using Twisted, though the implementation could easily be re-written using a number of other libraries/languages.
 
 This project was created for the sole purpose of learning and experimenting with network technologies. This code should not be used in any production environments.
 
@@ -19,38 +19,43 @@ In order for all network traffic to be funneled through the websocket connection
 1. Click on the AirPort icon in your menu bar. From the AirPort menu, select "Create Network..."
 2. Provide a name for the network, and optionally provide a password.
 
-When the HTML5 web app is loaded on your smartphone device, it will attempt to connect to a known, fixed IP address: `169.254.134.89`. Before we can run the websocket server which will bind to that address, we must assign that IP address to the Wifi device of the client machine. To do so, run the following command, substituting `en1` with your Wifi device name.
+Now run the client-side websocket server:
 
 ``` bash
-$ sudo /sbin/ifconfig en1 inet 169.254.134.89 netmask 255.255.0.0 alias
+$ sudo python client/client-ws-server.py 
 ```
 
-Now, we can launch the websocket server.
+The client-side websocket server will:
 
-``` bash
-$ sudo node client/ws-server.js 
-```
+1. Initialize a tun0 virtual device.
+2. Assign a fixed, known alias address (`169.254.134.89`) to the Wifi card.
+3. Bring up the tun device and assign the IP address 10.0.0.1 to it.
+4. Modify the IP routing table on the host machine to funnel all network traffic through tun0.
+5. Bind to `169.254.134.89:6354` and listen for new websocket connections.
+6. Spawn a thread to continuously read from tun0 and forward received data to the connected websocket client.
 
-The websocket server will bind to `169.254.134.89:6354` and listen for new websocket connections.
-
-Then, the websocket server will bring up a tun interface named `tun0` and assign the IP address `10.0.0.1` to it.
-
-``` bash
-$ sudo ifconfig tun0 10.0.0.1 10.0.0.1 netmask 255.255.255.0 up
-```
-
-It will then modify the IP routing table on the host machine to funnel all network traffic through the `tun0` device.
-
-``` bash
-$ sudo route delete default
-$ sudo route add default 10.0.0.1
-```
-
-Now as network requests are issued, data will be written into `/dev/tun0`. The Node.js program will read all such data and broadcast it to connected clients. Similarly, as websocket messages are received, the Node.js program will write data into `/dev/tun0`, effectively injecting websocket data into the OS as received IP traffic.
 
 Server Setup
 ------------
 
-The server implementation was tested with an Amazon EC2 Micro Instance running Ubuntu Server Cloud Guest 11.10 (Oneiric Ocelot). A bootstrap script, `server/bootstrap_server.sh` is provided to install the necessary tools to get off the ground.
+The server implementation was tested with an Amazon EC2 Micro Instance running Ubuntu Server Cloud Guest 11.10 (Oneiric Ocelot). A bootstrap script, `server/bootstrap_server.sh` is provided to install the necessary tools to get off the ground. Once the bootstrap script has completed, run both the static file server and the websocket server:
 
+``` bash
+$ sudo node server/fs-server.js
+$ sudo python server/ws-server.py
+```
 
+The static file server will serve the HTML5 web app when the public URL of the EC2 instance is requested.
+
+The websocket server will:
+
+1. Bind to port 8080 and listen for new websocket connections.
+2. Construct IP packets using received websocket messages and modify the source IP address before sending it out via eth0.
+3. Sniff incoming packets on eth0 and look for IP packets that look like responses to outgoing requests. These responses will be written back to the websocket, thereby communicating the response back to the client in need of internet.
+
+Limitations
+------------
+
+- Neither the remote server nor the client websocket server handle more than one websocket connection at a time
+- While theoretically the architecture presented here could be used to tether any IP traffic, the current implementation only handles TCP packets.
+- If DNS is not configured on the client machine, hostnames will not be resolved.
