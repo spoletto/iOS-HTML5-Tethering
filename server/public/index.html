@@ -90,9 +90,8 @@
         </style>
 
         <link rel="stylesheet" href="jquery.mobile-1.0.1.min.css">
-        <script type="text/javascript" async="" src="ga.js"></script><script src="jquery-1.7.1.min.js"></script>
+		<script src="jquery-1.7.1.min.js"></script>
         <script src="jquery.mobile-1.0.1.min.js"></script>
-        <script src="bookmark_bubble.js"></script>
 
                 <script type="text/javascript">
                 //Document is loaded let's start...
@@ -162,9 +161,6 @@
                         remoteConnected = false,
                         remoteAttempt = 0,
                         $remotestatus = $('#remote-status'),
-
-                        remoteAlert = false,
-                        localAlert = false,
                         
                         host = {};
 
@@ -218,13 +214,8 @@
                                                         if (remoteConnected) {}
                                                         else {
                                                                 if (socket.remoteConnectTimer >= 30) {
-                                                                        if (!remoteAlert) {
-                                                                                remoteAlert = true;
-                                                                                alert('Unable to connect to the Tether proxy. Please ensure that your iOS device has an internet connection (non-wifi). If the problem persists, try refreshing the page.');
-                                                                                socket.stopLocalConnectTimer();
-                                                                                socket.localConnectTimer = 0;
-                                                                                remoteAlert = false;
-                                                                        }
+             														socket.stopLocalConnectTimer();	
+																	socket.localConnectTimer = 0;
                                                                 }
                                                         }
 
@@ -292,13 +283,8 @@
                                                         }
                                                         else {
                                                                 if (socket.localConnectTimer > 10) {
-                                                                        if (!localAlert) {
-                                                                                localAlert = true;
-                                                                                alert('Unable to connect to local machine. Please ensure that Tether is running on your computer and that your iOS device is connected to your tether ad-hoc network.');
-                                                                                socket.stopLocalConnectTimer();
-                                                                                socket.localConnectTimer = 0;
-                                                                                localAlert = false;
-                                                                        }
+																	socket.stopLocalConnectTimer();
+																	socket.localConnectTimer = 0;
                                                                 }
                                                         }
 
