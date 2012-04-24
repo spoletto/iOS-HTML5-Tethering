@@ -26,6 +26,7 @@ class PacketSniffer(threading.Thread):
 			for outbound_packet in outbound_packets:
 				if outbound_packet.dst == pkt.src:
 					if outbound_packet.dport == pkt.sport:
+						outbound_packets.remove(outbound_packet)
 						
 						pkt.dst = "10.0.0.1"
 						del pkt[TCP].chksum
