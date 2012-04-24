@@ -1,6 +1,6 @@
 from scapy.all import *
 
-###### Websocket stuff ########
+import threading
 
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -44,7 +44,7 @@ class Handler(WebSocketHandler):
 		global outbound_packets
 		ipPacket = IP(message)
 		outbound_packets.append(ipPacket)
-		print "outbound packets is " + outbound_packets
+		print "outbound packets is " + str(outbound_packets)
 		ipPacket.src = "10.202.43.31"
 		del ipPacket[TCP].chksum
 		del ipPacket[IP].chksum
@@ -66,15 +66,6 @@ class Handler(WebSocketHandler):
 sniffingThread = PacketSniffer()
 sniffingThread.daemon = True
 sniffingThread.start()
-
-## TESTING
-ipPacket = IP("RQAAQIPkQABABpLwCgAAAUWs1DbV5QBQiZA2PgAAAACwAv//Cp8AAAIEBbQBAwMBAQEICl1UFSYAAAAABAIAAA==".decode('base64'))
-outbound_packets.append(ipPacket)
-print "outbound packets is " + outbound_packets
-ipPacket.src = "10.202.43.31"
-del ipPacket[TCP].chksum
-del ipPacket[IP].chksum
-send(ipPacket)
 			
 wsServer = HTTPServer(Application([("/websocket/", Handler)]))
 print "Server started."
