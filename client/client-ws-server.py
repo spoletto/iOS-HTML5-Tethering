@@ -39,23 +39,23 @@ class TunReader(threading.Thread):
                 connection.write_message(dataFromTun)
 
 class Handler(WebSocketHandler):
-        def open(self):
-            global connection
-            print "New connection opened."
-            connection = self
+    def open(self):
+        global connection
+        print "New connection opened."
+        connection = self
 
-        def on_message(self, message):
-            global tun
-            m = message.decode('base64')
-            os.write(tun, m)
+    def on_message(self, message):
+        global tun
+        m = message.decode('base64')
+        os.write(tun, m)
 
-        def on_close(self):
-            global connection
-            print "Connection closed."
-            connection = None
+    def on_close(self):
+        global connection
+        print "Connection closed."
+        connection = None
 
-        def allow_draft76(self):
-            return True
+    def allow_draft76(self):
+        return True
 
 tunThread = TunReader()
 tunThread.daemon = True
