@@ -1,14 +1,17 @@
-from scapy.all import *
+#!/usr/bin/env python
 
+from tornado.websocket import WebSocketHandler
+from tornado.httpserver import HTTPServer
+from tornado.web import Application
+from tornado.ioloop import IOLoop
+
+from collections import defaultdict
+from scapy.all import *
 import threading
 
-from tornado.httpserver import HTTPServer
-from tornado.ioloop import IOLoop
-from tornado.web import Application
-from tornado.websocket import WebSocketHandler
-
-# Totally inefficient. Going for simpliciy.
-outbound_packets = []
+# Warning: Not thread-safe.
+# Dictionary mapping (outbound.dst, outbound.dport) -> count of IP packets awaiting reply
+outbound_packets = defaultdict(int)
 connection = None
 
 class PacketSniffer(threading.Thread):
@@ -20,21 +23,20 @@ class PacketSniffer(threading.Thread):
 		while (True):
 			pkt = sniff(iface="eth0", count=1)
 			if not pkt[0].haslayer(IP) or not pkt[0].haslayer(TCP):
-				continue # Primitive for now. Just handle TCP. Not robust.
+				continue # Just handle TCP for now.
 			pkt = pkt[0][IP]
 			
-			for outbound_packet in outbound_packets:
-				if outbound_packet.dst == pkt.src:
-					if outbound_packet.dport == pkt.sport:
-						outbound_packets.remove(outbound_packet)
-						
-						pkt.dst = "10.0.0.1"
-						del pkt[TCP].chksum
-						del pkt[IP].chksum
-						pkt.show2() # Force recompute the checksum
-			
-						if connection:
-							connection.write_message(str(pkt).encode('base64'))
+			if outbound_packets[(pkt.src, pkt.sport)] > 0:
+				outbound_packets[(pkt.src, pkt.sport)] -= 1
+				
+				# Modify the destination address back to the address of the TUN on the host.		
+				pkt.dst = "10.0.0.1"
+				del pkt[TCP].chksum
+				del pkt[IP].chksum
+				pkt.show2() # Force recompute the checksum
+	
+				if connection:
+					connection.write_message(str(pkt).encode('base64'))
 			
 
 class Handler(WebSocketHandler):
@@ -44,19 +46,19 @@ class Handler(WebSocketHandler):
 		connection = self
 
 	def manipulate_outgoing_packet(self, message):
+		# Add the original packet to the NAT table.
 		global outbound_packets
-		original = IP(message)
 		ipPacket = IP(message)
-		outbound_packets.append(original)
+		outbound_packets[(ipPacket.dst, ipPacket.dport)] += 1
+		
+		# Modify the source IP address and recalculate the checksum.
 		ipPacket.src = "10.202.43.31"
 		del ipPacket[TCP].chksum
 		del ipPacket[IP].chksum
 		send(ipPacket)
 		
 	def on_message(self, message):
-		print "Received message from web socket: " + message
-		decodedMsg = message.decode('base64')
-		self.manipulate_outgoing_packet(decodedMsg)
+		self.manipulate_outgoing_packet(message.decode('base64'))
 
 	def on_close(self):
 		global connection
