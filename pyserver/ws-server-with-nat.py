@@ -55,7 +55,7 @@ class Handler(WebSocketHandler):
 	def on_message(self, message):
 		print "Received message from web socket: " + message
 		decodedMsg = message.decode('base64')
-		manipulate_outgoing_packet(decodedMsg)
+		self.manipulate_outgoing_packet(decodedMsg)
 
 	def on_close(self):
 		global connection
