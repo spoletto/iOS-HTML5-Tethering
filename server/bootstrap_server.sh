@@ -49,3 +49,6 @@ sudo rm scapy-2.1.0.tar.gz
 # Clone the repo
 cd ~
 git clone git://github.com/spoletto/iOS-HTML5-Tethering.git
+
+# Configure iptables
+sudo sh ~/iOS-HTML5-Tethering/server/iptables_config.sh
