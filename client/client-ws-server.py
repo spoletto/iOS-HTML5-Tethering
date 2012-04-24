@@ -46,9 +46,7 @@ class Handler(WebSocketHandler):
 
         def on_message(self, message):
             global tun
-            print "raw message: " + message
             m = message.decode('base64')
-            print "message received from websocket: " + m
             os.write(tun, m)
 
         def on_close(self):

@@ -19,6 +19,8 @@ class PacketSniffer(threading.Thread):
 		global connection
 		while (True):
 			pkt = sniff(iface="eth0", count=1)
+			if not pkt[0].haslayer(IP) or not pkt[0].haslayer(TCP):
+				continue # Primitive for now. Just handle TCP. Not robust.
 			pkt = pkt[0][IP]
 			
 			for outbound_packet in outbound_packets:
@@ -26,8 +28,8 @@ class PacketSniffer(threading.Thread):
 					if outbound_packet.dport == pkt.sport:
 						
 						pkt.dst = "10.0.0.1"
-						del ipPacket[TCP].chksum
-						del ipPacket[IP].chksum
+						del pkt[TCP].chksum
+						del pkt[IP].chksum
 						pkt.show2() # Force recompute the checksum
 			
 						if connection:
@@ -42,9 +44,9 @@ class Handler(WebSocketHandler):
 
 	def manipulate_outgoing_packet(self, message):
 		global outbound_packets
+		original = IP(message)
 		ipPacket = IP(message)
-		outbound_packets.append(ipPacket)
-		print "outbound packets is " + str(outbound_packets)
+		outbound_packets.append(original)
 		ipPacket.src = "10.202.43.31"
 		del ipPacket[TCP].chksum
 		del ipPacket[IP].chksum
