@@ -27,12 +27,12 @@ $ sudo python client/client-ws-server.py
 
 The client-side websocket server will:
 
-1. Initialize a tun0 virtual device.
+1. Initialize a `tun0` virtual device.
 2. Assign a fixed, known alias address (`169.254.134.89`) to the Wifi card.
-3. Bring up the tun device and assign the IP address 10.0.0.1 to it.
-4. Modify the IP routing table on the host machine to funnel all network traffic through tun0.
+3. Bring up the tun device and assign the IP address `10.0.0.1` to it.
+4. Modify the IP routing table on the host machine to funnel all network traffic through `tun0`.
 5. Bind to `169.254.134.89:6354` and listen for new websocket connections.
-6. Spawn a thread to continuously read from tun0 and forward received data to the connected websocket client.
+6. Spawn a thread to continuously read from `tun0` and forward received data to the connected websocket client.
 
 
 Server Setup
@@ -49,9 +49,9 @@ The static file server will serve the HTML5 web app when the public URL of the E
 
 The websocket server will:
 
-1. Bind to port 8080 and listen for new websocket connections.
-2. Construct IP packets using received websocket messages and modify the source IP address before sending it out via eth0.
-3. Sniff incoming packets on eth0 and look for IP packets that look like responses to outgoing requests. These responses will be written back to the websocket, thereby communicating the response back to the client in need of internet.
+1. Bind to port `8080` and listen for new websocket connections.
+2. Construct IP packets using received websocket messages and modify the source IP address before sending it out via `eth0`.
+3. Sniff incoming packets on `eth0` and look for IP packets that look like responses to outgoing requests. These responses will be written back to the websocket, thereby communicating the response back to the client in need of internet.
 
 Limitations
 ------------
