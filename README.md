@@ -56,6 +56,6 @@ The websocket server will:
 Limitations
 ------------
 
-- Neither the remote server nor the client websocket server handle more than one websocket connection at a time
+- Neither the remote server nor the client websocket server handle more than one websocket connection at a time.
 - While theoretically the architecture presented here could be used to tether any IP traffic, the current implementation only handles TCP packets.
 - If DNS is not configured on the client machine, hostnames will not be resolved.
