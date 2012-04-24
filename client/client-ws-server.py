@@ -9,11 +9,13 @@ import subprocess
 import threading
 import os
 
+WIFI_DEVICE_NAME = 'en1'
+
 # Initialize the tun0 device.
 tun = os.open('/dev/tun0', os.O_RDWR)
 
 # Assign a fixed, known alias address to the wifi card.
-subprocess.check_call('sudo /sbin/ifconfig en1 inet 169.254.134.89 netmask 255.255.0.0 alias', shell=True)
+subprocess.check_call('sudo /sbin/ifconfig ' + WIFI_DEVICE_NAME + ' inet 169.254.134.89 netmask 255.255.0.0 alias', shell=True)
 
 # Bring up the tun device and assign the IP address 10.0.0.1 to it.
 subprocess.check_call('sudo ifconfig tun0 10.0.0.1 10.0.0.1 netmask 255.255.255.0 up', shell=True)

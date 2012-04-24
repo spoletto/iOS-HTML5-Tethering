@@ -9,6 +9,8 @@ from collections import defaultdict
 from scapy.all import *
 import threading
 
+ETH_0_IP_ADDR = '10.202.43.31'
+
 # Warning: Not thread-safe.
 # Dictionary mapping (outbound.dst, outbound.dport) -> count of IP packets awaiting reply
 outbound_packets = defaultdict(int)
@@ -52,7 +54,7 @@ class Handler(WebSocketHandler):
         outbound_packets[(ipPacket.dst, ipPacket.dport)] += 1
         
         # Modify the source IP address and recalculate the checksum.
-        ipPacket.src = "10.202.43.31"
+        ipPacket.src = ETH_0_IP_ADDR
         del ipPacket[TCP].chksum
         del ipPacket[IP].chksum
         send(ipPacket)

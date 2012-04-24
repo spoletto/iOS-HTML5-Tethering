@@ -11,6 +11,22 @@ The websocket servers on both the client and remote end have been implemented us
 
 This project was created for the sole purpose of learning and experimenting with network technologies. This code should not be used in any production environments.
 
+Configuration
+-------------
+
+1. In `server/public/index.html`, the URLs for the websocket connections are hardcoded in:
+
+	```javascript
+	host.remote = "ws://ec2-50-17-152-48.compute-1.amazonaws.com:8080/websocket/";
+	host.local = "ws://169.254.134.89:6354/websocket";
+	````
+
+	The remote address should be changed to wherever you're hosting the server implementation.
+
+2. In `client/client-ws-server.py`, the constant `WIFI_DEVICE_NAME` should be updated to the device name of the Wifi device on the client machine, if it is not `en1`.
+
+3. In `server/ws-server.py`, the constant `ETH_0_IP_ADDR` should be updated to the IP address of the `eth0` device on your remote server.
+
 Client Setup - Mac OS X
 ------------------------
 
